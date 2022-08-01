@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install dependencies CWD: ${GITHUB_WORKSPACE} 
         run: |
           : # This installs dependencies thats required to run your plugin. It's best idea to include
           : # requirements.txt (This can auto generated using `pip freeze > requirements.txt`) remember
