@@ -270,6 +270,10 @@ class Client(ExecutorEventEmitter):
                     self.__stateUpdate(key, value, True)
             elif act_type == TYPES.shortConnectorIdNotification:
                 self.shortIdTracker[data["connectorId"]] = data['shortId']
+            elif act_type == TYPES.onConnect:
+                for setting in data['settings']:
+                    for key, value in setting.items():
+                        self.currentSettings[key] = value
             self.__emitEvent(act_type, data)
 
     def __emitEvent(self, ev, data):
