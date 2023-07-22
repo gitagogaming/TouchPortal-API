@@ -274,7 +274,10 @@ class Client(ExecutorEventEmitter):
                 for setting in data['settings']:
                     for key, value in setting.items():
                         self.currentSettings[key] = value
+#
+#
             self.__emitEvent(act_type, data)
+            
 
     def __emitEvent(self, ev, data):
         if not self.useNamespaceCallbacks:
@@ -371,16 +374,17 @@ class Client(ExecutorEventEmitter):
         """
         return actionId in self.__heldActions
 
-    def createState(self, stateId:str, description:str, value:str, parentGroup:str = None):
+    def createState(self, stateId:str, description:str, stateValue:str, parentGroup:str = None):
         """
         This will create a TP State at runtime. `stateId`, `description`, and `value` (`value` becomes the State's default value) are all required except `parentGroup` which allow you to create states in a `folder`.
+        If state exists it will update the state value instead.
         """
-        if stateId and description and value != None:
+        if stateId and description and stateValue != None:
             if stateId not in self.currentStates:
-                self.send({"type": "createState", "id": stateId, "desc": description, "defaultValue": value, "parentGroup": parentGroup})
-                self.currentStates[stateId] = value
+                self.send({"type": "createState", "id": stateId, "desc": description, "defaultValue": stateValue, "parentGroup": parentGroup})
+                self.currentStates[stateId] = stateValue
             else:
-                self.stateUpdate(stateId, value)
+                self.stateUpdate(stateId, stateValue)
 
     def createStateMany(self, states:list):
         """
@@ -390,7 +394,7 @@ class Client(ExecutorEventEmitter):
         try:
             for state in states:
                 if isinstance(state, dict):
-                    self.createState(state.get('id', ""), state.get('desc', ""), state.get('value', ""), state.get("parentGroup", ""))
+                    self.createState(state.get('id', ""), state.get('desc', ""), state.get('stateValue', ""), state.get("parentGroup", ""))
                 else:
                     self.__raiseException(f'createStateMany() requires a list of dicts, got {type(state)} instead.')
         except:
