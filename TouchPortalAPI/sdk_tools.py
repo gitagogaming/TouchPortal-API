@@ -206,6 +206,7 @@ def _arrayFromDict(d:dict, table:dict, sdk_v:int, category:str=None, path:str=""
     return ret
 
 
+
 def _replaceFormatTokens(items:list):
     for d in items:
         if not isinstance(d, dict) or not 'format' in d.keys() or not 'data' in d.keys():
@@ -213,26 +214,31 @@ def _replaceFormatTokens(items:list):
         data_ids = {}
         for data in d.get('data'):
             if (did := data.get('id')):
-                data_ids[did.rsplit(".", 1)[-1]] = did
+                data_ids[did] = did
+                parts = did.split(".")
+                for i in range(len(parts)):
+                    data_ids[".".join(parts[i:])] = did
         if not data_ids:
             continue
         fmt = d.get('format')
-        rx = re_compile(r'\$\[(\w+)\]')
+        rx = re_compile(r'\$\[([\w\.]+)\]')
         begin = 0
         while (m := rx.search(fmt, begin)):
             idx = m.group(1)
             if idx in data_ids.keys():
                 val = data_ids.get(idx)
-            elif idx.isdigit() and (i := int(idx) - 1) >= 0 and i < len(data_ids):
-                val = list(data_ids.values())[i]
+            elif idx.isdigit() and (i := int(idx) - 1) >= 0 and i < len(d.get('data')):
+                val = d.get('data')[i].get('id')
             else:
                 begin = m.end()
-                _addMessage(f"WARNING: Could not find replacement for token '{idx}' in 'format' attribute for element `{d.get('id')}`. The data arry does not contain this name/index.")
+                print(f"WARNING: Could not find replacement for token '{idx}' in 'format' attribute for element `{d.get('id')}`. The data array does not contain this name/index.")
                 continue
             # print(m.span(), val)
-            fmt = fmt[:m.start()] + "{$" + val + "$}" + fmt[m.end():]
-            begin = m.start() + len(val) + 4
+            replaced = "{$" + val + "$}"
+            fmt = fmt[:m.start()] + replaced + fmt[m.end():]
+            begin = m.start() + len(replaced)
         d['format'] = fmt
+
 
 
 def generateDefinitionFromScript(script:Union[str, TextIO], skip_invalid:bool=False):
